@@ -4,6 +4,8 @@ Progressive Web App (PWA) to test if your gym treadmill supports the open FTMS (
 
 **No app store. No installation. Just open in browser.**
 
+> **Note:** This is a quick AI-assisted prototype. No code review has been done. Use at your own risk.
+
 ## Features
 
 - Connect to Bluetooth treadmills via Web Bluetooth API
