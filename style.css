@@ -384,6 +384,34 @@ footer p {
     margin: 8px 0;
 }
 
+/* --- Heart Rate Specific --- */
+#hrConnectionCard h3 {
+    margin-top: 0;
+    color: #ff6b6b;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.hr-data {
+    background: linear-gradient(135deg, #ff6b6b22, #ff6b6b11);
+    border-left: 3px solid #ff6b6b;
+}
+
+.hr-data .data-value {
+    color: #ff6b6b;
+    font-size: 3rem;
+}
+
+.hr-data .data-value.no-contact {
+    opacity: 0.5;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+}
+
 /* --- Hidden --- */
 [hidden] {
     display: none !important;

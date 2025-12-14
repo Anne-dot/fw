@@ -34,7 +34,7 @@
             </div>
         </details>
 
-        <!-- Connection Card -->
+        <!-- Connection Card - Machine -->
         <section class="card" id="connectionCard">
             <div id="status" class="status waiting">Ootab ühendust...</div>
 
@@ -53,9 +53,16 @@
             <button id="disconnectBtn" disabled>Katkesta ühendus</button>
         </section>
 
+        <!-- Connection Card - Heart Rate -->
+        <section class="card" id="hrConnectionCard">
+            <h3>Pulsivöö (valikuline)</h3>
+            <button id="connectHRBtn">Ühenda pulsivööga</button>
+            <button id="disconnectHRBtn" disabled hidden>Katkesta pulsivöö</button>
+        </section>
+
         <!-- Live Data Card -->
         <section class="card" id="dataCard" hidden>
-            <h2>Reaalajas andmed</h2>
+            <h2>Reaalajas andmed - Masin</h2>
             <div class="data-grid">
                 <div class="data-item">
                     <span class="data-label">Kiirus</span>
@@ -79,6 +86,18 @@
                 </div>
             </div>
             <button id="saveWorkoutBtn">Salvesta treening</button>
+        </section>
+
+        <!-- Heart Rate Data Card -->
+        <section class="card" id="hrCard" hidden>
+            <h2>Reaalajas andmed - Pulss</h2>
+            <div class="data-grid">
+                <div class="data-item hr-data">
+                    <span class="data-label">Pulss</span>
+                    <span class="data-value" id="heartRate">--</span>
+                    <span class="data-unit">bpm</span>
+                </div>
+            </div>
         </section>
 
         <!-- Services Card -->
@@ -114,6 +133,7 @@
     </footer>
 
     <script src="ftms.js"></script>
+    <script src="heart-rate.js"></script>
     <script src="storage.js"></script>
     <script src="app.js"></script>
 </body>

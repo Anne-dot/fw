@@ -194,7 +194,7 @@ function downloadRawDataJSON() {
 
 /**
  * Export ALL localStorage data as single JSON file
- * Includes: workouts, raw data, errors, current state
+ * Includes: workouts, raw data, errors, current state, HR data
  */
 function exportAllData() {
     const allData = {
@@ -203,6 +203,10 @@ function exportAllData() {
         connectionState: typeof connectionState !== 'undefined' ? connectionState : null,
         workouts: getWorkouts(),
         rawData: getRawData(),
+        // Heart Rate data
+        hrData: typeof hrData !== 'undefined' ? hrData : [],
+        hrConnected: typeof hrConnected !== 'undefined' ? hrConnected : false,
+        currentHeartRate: typeof currentHeartRate !== 'undefined' ? currentHeartRate : null,
         errors: JSON.parse(localStorage.getItem('ftms_errors') || '[]'),
         sessionEvents: JSON.parse(localStorage.getItem('ftms_session_events') || '[]'),
         // Include any other ftms_ keys

@@ -52,6 +52,12 @@ let currentWorkout = {
     speedReadings: []
 };
 
+/* --- Heart Rate State (sõltumatu FTMS-ist) --- */
+let hrDevice = null;
+let hrConnected = false;
+let currentHeartRate = null;
+let hrData = [];  // Salvestab kõik HR lugemised
+
 /* --- DOM Elements --- */
 const elements = {
     status: document.getElementById('status'),
@@ -70,7 +76,12 @@ const elements = {
     speed: document.getElementById('speed'),
     distance: document.getElementById('distance'),
     time: document.getElementById('time'),
-    incline: document.getElementById('incline')
+    incline: document.getElementById('incline'),
+    // Heart Rate elements
+    connectHRBtn: document.getElementById('connectHRBtn'),
+    disconnectHRBtn: document.getElementById('disconnectHRBtn'),
+    hrCard: document.getElementById('hrCard'),
+    heartRate: document.getElementById('heartRate')
 };
 
 /* --- Machine Filter Mapping --- */
@@ -87,7 +98,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 function init() {
     try {
-        // Event listeners
+        // Event listeners - FTMS
         elements.connectBtn.addEventListener('click', connect);
         elements.disconnectBtn.addEventListener('click', disconnect);
         elements.saveWorkoutBtn.addEventListener('click', saveCurrentWorkout);
@@ -95,6 +106,14 @@ function init() {
         elements.exportRawBtn.addEventListener('click', downloadRawDataJSON);
         elements.exportAllBtn.addEventListener('click', exportAllData);
         elements.debugBtn.addEventListener('click', showDebugInfo);
+
+        // Event listeners - Heart Rate
+        if (elements.connectHRBtn) {
+            elements.connectHRBtn.addEventListener('click', connectHeartRate);
+        }
+        if (elements.disconnectHRBtn) {
+            elements.disconnectHRBtn.addEventListener('click', disconnectHeartRate);
+        }
 
         // Load saved workouts
         displaySavedWorkouts();
@@ -669,4 +688,103 @@ function showDebugInfo() {
         </div>
     `;
     document.body.appendChild(modal);
+}
+
+/* ===========================================
+   Heart Rate Connection (Sõltumatu FTMS-ist)
+   =========================================== */
+
+async function connectHeartRate() {
+    try {
+        log('Otsin pulsivööd...', 'info');
+
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [{ services: [HR.SERVICE] }],
+            optionalServices: [HR.SERVICE]
+        });
+
+        hrDevice = device;
+        log(`Leitud: ${device.name || 'Pulsivöö'}`, 'success');
+
+        hrDevice.addEventListener('gattserverdisconnected', onHRDisconnected);
+
+        const server = await hrDevice.gatt.connect();
+        const service = await server.getPrimaryService(HR.SERVICE);
+        const char = await service.getCharacteristic(HR.CHARS.MEASUREMENT);
+
+        await char.startNotifications();
+        char.addEventListener('characteristicvaluechanged', handleHeartRateData);
+
+        hrConnected = true;
+        log('Pulsivöö ühendatud!', 'success');
+        updateHRUI(true);
+
+    } catch (error) {
+        log(`HR viga: ${error.message}`, 'error');
+        hrConnected = false;
+        updateHRUI(false);
+    }
+}
+
+function disconnectHeartRate() {
+    try {
+        if (hrDevice && hrDevice.gatt.connected) {
+            hrDevice.gatt.disconnect();
+        }
+        hrConnected = false;
+        currentHeartRate = null;
+        updateHRUI(false);
+        log('Pulsivöö ühendus katkestatud', 'info');
+    } catch (error) {
+        log(`HR katkestamise viga: ${error.message}`, 'error');
+    }
+}
+
+function onHRDisconnected() {
+    log('Pulsivöö ühendus katkestatud', 'warn');
+    hrConnected = false;
+    currentHeartRate = null;
+    updateHRUI(false);
+}
+
+function handleHeartRateData(event) {
+    try {
+        const value = event.target.value;
+        const data = parseHeartRate(value);
+
+        currentHeartRate = data.heartRate;
+
+        // Salvesta andmed
+        hrData.push({
+            timestamp: Date.now(),
+            heartRate: data.heartRate,
+            rrIntervals: data.rrIntervals,
+            contactDetected: data.contactDetected
+        });
+
+        // Uuenda UI
+        updateHRDisplay(data);
+
+    } catch (error) {
+        log(`HR parsing viga: ${error.message}`, 'error');
+    }
+}
+
+function updateHRDisplay(data) {
+    if (elements.heartRate) {
+        elements.heartRate.textContent = data.heartRate;
+
+        // Näita kontakti staatust
+        if (data.contactDetected === false) {
+            elements.heartRate.classList.add('no-contact');
+        } else {
+            elements.heartRate.classList.remove('no-contact');
+        }
+    }
+}
+
+function updateHRUI(connected) {
+    if (elements.connectHRBtn) elements.connectHRBtn.hidden = connected;
+    if (elements.disconnectHRBtn) elements.disconnectHRBtn.hidden = !connected;
+    if (elements.hrCard) elements.hrCard.hidden = !connected;
 }
